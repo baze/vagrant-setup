@@ -9,16 +9,9 @@ sudo apt-get install -y vim curl python-software-properties
 sudo add-apt-repository -y ppa:ondrej/php5
 sudo apt-get update
 
-# Node.js
-sudo apt-get install -y  python g++ make
-sudo add-apt-repository -y ppa:chris-lea/node.js
-sudo apt-get update
-sudo apt-get install -y  nodejs
-
 sudo apt-get install -y php5 apache2 libapache2-mod-php5 php5-curl php5-gd php5-mcrypt php5-readline mysql-server-5.5 php5-mysql git-core php5-xdebug
 
-# install bower and gulp
-sudo npm install -g bower gulp
+# apt-get install -y beanstalkd supervisor libxrender-dev sqlite3
 
 # Xdebug
 cat << EOF | sudo tee -a /etc/php5/mods-available/xdebug.ini
@@ -27,16 +20,62 @@ xdebug.cli_color=1
 xdebug.show_local_vars=1
 EOF
 
-# enable apache mod rewrite
-sudo a2enmod rewrite
-
 # enable php error reporting
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php5/apache2/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php5/apache2/php.ini
 sed -i "s/disable_functions = .*/disable_functions = /" /etc/php5/cli/php.ini
 
+# Apache
+# ------
+# Setup hosts file
+VHOST=$(cat <<EOF
+<VirtualHost *:80>
+  DocumentRoot "/var/www/public"
+  <Directory "/var/www/public">
+    Options -Indexes +FollowSymLinks
+    AllowOverride All
+    Require all granted
+  </Directory>
+</VirtualHost>
+EOF
+)
+echo "${VHOST}" > /etc/apache2/sites-enabled/000-default.conf
+# Enable mod_rewrite
+a2enmod rewrite
+# Restart apache
 sudo service apache2 restart
 
 # install composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
+
+# # Laravel stuff
+# # -------------
+# # Load Composer packages
+# cd /var/www
+# composer install --dev
+# # Set up the database
+# mysql -u root --password=root <<QUERY_INPUT
+# CREATE DATABASE IF NOT EXISTS database;
+# QUERY_INPUT
+# #echo "CREATE DATABASE IF NOT EXISTS easycampaign" | mysql
+# #echo "CREATE USER 'root'@'localhost' IDENTIFIED BY 'root'" | mysql
+# #echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'root'" | mysql
+# # Run artisan migrate to setup the database and schema, then seed it
+# php artisan migrate --env=development
+# php artisan db:seed --env=development
+
+# # additional stuff
+# sudo service beanstalkd start
+
+# SUPERVISORCONFIG=$(cat <<EOF
+# [program:queue]
+# command=php artisan queue:listen --tries=2
+# directory=/var/www
+# stdout_logfile=/var/www/app/storage/logs/supervisor.log
+# redirect_stderr=true
+# EOF
+# )
+# echo "${SUPERVISORCONFIG}" > /etc/supervisor/conf.d/queue.conf
+
+
