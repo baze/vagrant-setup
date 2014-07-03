@@ -11,7 +11,13 @@ sudo apt-get update
 
 sudo apt-get install -y php5 apache2 libapache2-mod-php5 php5-curl php5-gd php5-mcrypt php5-readline mysql-server-5.5 php5-mysql git-core php5-xdebug
 
-# apt-get install -y beanstalkd supervisor libxrender-dev sqlite3
+# for testing in sqlite in memory databases
+sudo apt-get install -y sqlite3 php5-sqlite
+
+# for the ability to create pdf files
+sudo apt-get install -y libxrender-dev
+
+# apt-get install -y beanstalkd supervisor 
 
 # Xdebug
 cat << EOF | sudo tee -a /etc/php5/mods-available/xdebug.ini
