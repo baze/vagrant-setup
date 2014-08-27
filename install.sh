@@ -55,6 +55,13 @@ sudo service apache2 restart
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 
+# SSL Certificate
+# ------
+# sudo make-ssl-cert generate-default-snakeoil --force-overwrite
+# sudo a2enmod ssl
+# sudo a2ensite default-ssl.conf
+# sudo service apache2 reload
+
 # # Laravel stuff
 # # -------------
 # # Load Composer packages
